@@ -130,7 +130,8 @@
 
 ;;; TODO:
 ;;;   - Improve form/var selection.
-;;;   - Move cursor to |Any.
+;;;   - Find a way to access custom eval results programmatically,
+;;;     so that we can move cursor to |Any.
 ;;;   - Handle errors.
 
 (cmd/command {:command :typedclojure.ann.var
