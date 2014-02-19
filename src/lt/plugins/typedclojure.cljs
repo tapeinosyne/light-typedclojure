@@ -50,6 +50,28 @@
                     :to dest}))
       orig)))
 
+(defn token!? [coll]
+  ;; TODO: refactor and handle more cases. (Also, seek redemption.)
+  (let [e (pool/last-active)
+        s (:string coll)
+        opening? (partial re-seq #"\(|\[|\{")
+        closing? (partial re-seq #"\)|\]|\}")
+        blank?   (partial re-seq #"\s")
+        ->bound (fn [n] (ed/adjust-loc (ed/->cursor e) n))]
+    (cond
+     (closing? s) (do
+                    (ed/move-cursor e (->bound -1))
+                    false)
+     (= "" s)     (let [b (ed/->token e (->bound 1))]
+                    (if (opening? (:string b))
+                      (ed/move-cursor e (->bound 1))
+                      false))
+     (blank? s)   false
+     (opening? s) (do
+                    (ed/move-cursor e (->bound 1))
+                    false)
+     :else coll)))
+
 (defn form? [e loc]
   ;; TODO: handle case where loc is out of form by one column
   (let [[start end] (par/form-boundary e loc nil)]
@@ -116,47 +138,53 @@
               :exec (fn []
                       (let [e (pool/last-active)
                             c (ed/->cursor e)]
-                          (let [token (if (ed/selection? e)
-                                        (ed/selection e)
-                                        (:string (ed/->token e c)))
-                                ->ann-var (str  "(str \"(\""
-                                                (aliased<- "ann")
-                                                "\" \""
-                                                (qualified<- token)
-                                                "\" Any)\""
-                                                ")")]
-                            (do
-                              (cmd/exec! :typedclojure.pseudoparedit.top)
-                              (ed/insert-at-cursor e "\n")
-                              (ed/move-cursor e
-                                              (adjust-line (ed/->cursor e) -1))
-                              (object/raise e
-                                            :eval.custom
-                                            ->ann-var
-                                            {:result-type :replace :verbatim true})))))})
+                        (let [token (if (ed/selection? e)
+                                      (ed/selection e)
+                                      (:string (ed/->token e c)))
+                              ->ann-var (str  "(str \"(\""
+                                              (aliased<- "ann")
+                                              "\" \""
+                                              (qualified<- token)
+                                              "\" Any)\""
+                                              ")")]
+                          (do
+                            (cmd/exec! :typedclojure.pseudoparedit.top)
+                            (ed/insert-at-cursor e "\n")
+                            (ed/move-cursor e
+                                            (adjust-line (ed/->cursor e) -1))
+                            (object/raise e
+                                          :eval.custom
+                                          ->ann-var
+                                          {:result-type :replace :verbatim true})))))})
 
 
 (cmd/command {:command :typedclojure.ann.form
               :desc "Typed Clojure: annotate form"
               :exec (fn []
                       (let [e (pool/last-active)
-                            c (ed/->cursor e)]
-                        (if-not (form? e c)
-                          (notifos/set-msg! "Typed Clojure: you need to be within a form to annotate it"
-                                            {:timeout 5000 :class "error"})
-                          (let [e (pool/last-active)
-                                ->ann-form (str  "(str \"(\""
-                                                 (aliased<- "ann-form")
-                                                 "\" \""
-                                                 "__SELECTION*__"
-                                                 "\" Any)\""
-                                                 ")")]
-                            (do
-                              (cmd/exec! :paredit.select.parent)
-                              (object/raise e
-                                            :eval.custom
-                                            ->ann-form
-                                            {:result-type :replace :verbatim true}))))))})
+                            c (ed/->cursor e)
+                            token (ed/->token e c)
+                            sym (cond
+                                   (ed/selection? e) false
+                                   (token!? token) (update-in (conj token {:line (:line c)})
+                                                              [:string]
+                                                              pr-str)
+                                   :else false)
+                            ->ann-form (str  "(str \"(\""
+                                             (aliased<- "ann-form")
+                                             "\" \""
+                                             (or (:string sym) "__SELECTION*__")
+                                             "\" Any)\""
+                                             ")")]
+                        (do
+                          (if sym
+                            (ed/set-selection e {:line (:line sym) :ch (:start sym)}
+                                                {:line (:line sym) :ch (:end sym)})
+                            (cmd/exec! :paredit.select.parent))
+                          (object/raise e
+                                        :eval.custom
+                                        ->ann-form
+                                        {:result-type :replace :verbatim true}))))})
 
 
 ;;;; checking commands ;;;;
