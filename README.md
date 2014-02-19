@@ -24,15 +24,15 @@ The following commands are currently available:
 to typecheck the namespace defined in your current file (as saved on disk).
 
 `Typed Clojure: check var or form`  
-to check the variable or form under the cursor, or in the selection.
+to typecheck the variable or form under the cursor, or in the selection.
 
 `Typed Clojure: annotate var`  
-to annotate a var with a type.
+to annotate a var with a type through `clojure.core.typed/ann`, fully qualifying it if necessary.
 
 `Typed Clojure: annotate form`  
-to annotate a form with a type.
+to annotate a form or symbol with a type through `clojure.core.typed/ann-form`.
 
-To bind keys to any of these functions, add the following commands to your user.keymap  
+To bind keys to any of these functions, add any of the following commands to your user.keymap:  
 ```clojure
 {:+ {:editor.clj {"keybinding" [:typedclojure.check.ns]
                   "keybinding" [:typedclojure.check.form]
