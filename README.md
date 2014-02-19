@@ -2,7 +2,7 @@ light-typedclojure
 ==================
 Typed Clojure plugin for Light Table
 
-Currently in α; see [below](#prerelease-caveats) for existing issues.
+This is α software; see [below](#prerelease-caveats) for existing issues.
 
 ## Installation
 Typed Clojure is available in the plugin manager.
@@ -41,6 +41,6 @@ To bind keys to any of these functions, add the following commands to your user.
 ```
 
 ## Prerelease caveats
-Error messages are currently displayed in a rather awkward fashion, particularly for var/form checks. While this is partly due to the lack of a pre-existing eval-and-return method à la CIDER, there exists a Light Table bug in the display of inline results containing newlines that causes the widget to be moved within the editor (or even outside the editor, causing an error).
+Typecheck messages are currently displayed in a rather awkward fashion, particularly for var/form checks. While this is partly attributable to the lack of a pre-existing eval-and-return method à la CIDER, there exists a Light Table bug in the inline display of results containing newlines that causes the widget to be moved within the editor (or even outside the editor, causing an error). See [LightTable/LightTable#1298](https://github.com/LightTable/LightTable/issues/1298) for details.
 
-The annotation formatters do not reposition your cursor properly (again, a eval-and-return method would be welcome); for the form annotator, you are required to be *within* a form rather than at its boundaries.
+The annotation commands do not reposition your cursor properly (again, a eval-and-return method would be welcome); they may also behave goofily or fail if the cursor is at a form boundary or in whitespace.
