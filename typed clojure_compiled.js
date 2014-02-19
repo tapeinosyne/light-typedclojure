@@ -24,8 +24,8 @@ var pars = cljs.core.re_pattern.call(null,"\\(|\\{|\\[");var cur = cljs.core.sec
 {return cur;
 } else
 {{
-var G__8477 = adj;
-loc__$1 = G__8477;
+var G__10066 = adj;
+loc__$1 = G__10066;
 continue;
 }
 }
@@ -35,10 +35,10 @@ break;
 lt.plugins.typedclojure.seek_bottom = (function seek_bottom(ed,loc){var __GT_top = (function (pos){return lt.objs.editor.adjust_loc.call(null,pos,1);
 });var start = lt.plugins.typedclojure.seek_top.call(null,ed,loc);var end = cljs.core.second.call(null,lt.plugins.paredit.form_boundary.call(null,ed,__GT_top.call(null,start),null));return __GT_top.call(null,end);
 });
-lt.plugins.typedclojure.move_top = (function move_top(p__8470,dir){var map__8473 = p__8470;var map__8473__$1 = ((cljs.core.seq_QMARK_.call(null,map__8473))?cljs.core.apply.call(null,cljs.core.hash_map,map__8473):map__8473);var orig = map__8473__$1;var loc = cljs.core.get.call(null,map__8473__$1,new cljs.core.Keyword(null,"loc","loc",1014011570));var ed = cljs.core.get.call(null,map__8473__$1,new cljs.core.Keyword(null,"ed","ed",1013907473));var vec__8474 = lt.plugins.paredit.form_boundary.call(null,ed,loc,null);var start = cljs.core.nth.call(null,vec__8474,0,null);var end = cljs.core.nth.call(null,vec__8474,1,null);if(cljs.core.truth_((function (){var and__6996__auto__ = start;if(cljs.core.truth_(and__6996__auto__))
+lt.plugins.typedclojure.move_top = (function move_top(p__10059,dir){var map__10062 = p__10059;var map__10062__$1 = ((cljs.core.seq_QMARK_.call(null,map__10062))?cljs.core.apply.call(null,cljs.core.hash_map,map__10062):map__10062);var orig = map__10062__$1;var loc = cljs.core.get.call(null,map__10062__$1,new cljs.core.Keyword(null,"loc","loc",1014011570));var ed = cljs.core.get.call(null,map__10062__$1,new cljs.core.Keyword(null,"ed","ed",1013907473));var vec__10063 = lt.plugins.paredit.form_boundary.call(null,ed,loc,null);var start = cljs.core.nth.call(null,vec__10063,0,null);var end = cljs.core.nth.call(null,vec__10063,1,null);if(cljs.core.truth_((function (){var and__6796__auto__ = start;if(cljs.core.truth_(and__6796__auto__))
 {return end;
 } else
-{return and__6996__auto__;
+{return and__6796__auto__;
 }
 })()))
 {var dest = ((cljs.core._EQ_.call(null,dir,new cljs.core.Keyword(null,"right","right",1122416014)))?lt.plugins.typedclojure.seek_bottom.call(null,ed,loc):lt.plugins.typedclojure.seek_top.call(null,ed,loc));return cljs.core.update_in.call(null,orig,new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Keyword(null,"edits","edits",1110263579)], null),cljs.core.conj,new cljs.core.PersistentArrayMap(null, 3, [new cljs.core.Keyword(null,"type","type",1017479852),new cljs.core.Keyword(null,"cursor","cursor",3959752392),new cljs.core.Keyword(null,"from","from",1017056028),dest,new cljs.core.Keyword(null,"to","to",1013907949),dest], null));
@@ -46,15 +46,15 @@ lt.plugins.typedclojure.move_top = (function move_top(p__8470,dir){var map__8473
 {return orig;
 }
 });
-lt.plugins.typedclojure.form_QMARK_ = (function form_QMARK_(e,loc){var vec__8476 = lt.plugins.paredit.form_boundary.call(null,e,loc,null);var start = cljs.core.nth.call(null,vec__8476,0,null);var end = cljs.core.nth.call(null,vec__8476,1,null);if((cljs.core.not_EQ_.call(null,new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [null,null], null),lt.plugins.paredit.form_boundary.call(null,e,loc,null))) || (cljs.core.not_EQ_.call(null,new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [null,null], null),lt.plugins.paredit.form_boundary.call(null,e,lt.objs.editor.adjust_loc.call(null,loc,-1),null))) || (cljs.core.not_EQ_.call(null,new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [null,null], null),lt.plugins.paredit.form_boundary.call(null,e,lt.objs.editor.adjust_loc.call(null,loc,1),null))))
+lt.plugins.typedclojure.form_QMARK_ = (function form_QMARK_(e,loc){var vec__10065 = lt.plugins.paredit.form_boundary.call(null,e,loc,null);var start = cljs.core.nth.call(null,vec__10065,0,null);var end = cljs.core.nth.call(null,vec__10065,1,null);if((cljs.core.not_EQ_.call(null,new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [null,null], null),lt.plugins.paredit.form_boundary.call(null,e,loc,null))) || (cljs.core.not_EQ_.call(null,new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [null,null], null),lt.plugins.paredit.form_boundary.call(null,e,lt.objs.editor.adjust_loc.call(null,loc,-1),null))) || (cljs.core.not_EQ_.call(null,new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [null,null], null),lt.plugins.paredit.form_boundary.call(null,e,lt.objs.editor.adjust_loc.call(null,loc,1),null))))
 {return true;
 } else
 {return false;
 }
 });
 lt.objs.command.command.call(null,new cljs.core.PersistentArrayMap(null, 4, [new cljs.core.Keyword(null,"command","command",1964298941),new cljs.core.Keyword(null,"typedclojure.pseudoparedit.top","typedclojure.pseudoparedit.top",1462061138),new cljs.core.Keyword(null,"desc","desc",1016984067),"Typed Clojure: move cursor to top level",new cljs.core.Keyword(null,"hidden","hidden",4091384092),true,new cljs.core.Keyword(null,"exec","exec",1017031683),(function (type){var temp__4092__auto__ = lt.objs.editor.pool.last_active.call(null);if(cljs.core.truth_(temp__4092__auto__))
-{var ed = temp__4092__auto__;if(cljs.core.truth_((function (){var or__7008__auto__ = cljs.core.not.call(null,new cljs.core.Keyword("lt.plugins.typedclojure","orig-pos","lt.plugins.typedclojure/orig-pos",3684609387).cljs$core$IFn$_invoke$arity$1(cljs.core.deref.call(null,ed)));if(or__7008__auto__)
-{return or__7008__auto__;
+{var ed = temp__4092__auto__;if(cljs.core.truth_((function (){var or__6808__auto__ = cljs.core.not.call(null,new cljs.core.Keyword("lt.plugins.typedclojure","orig-pos","lt.plugins.typedclojure/orig-pos",3684609387).cljs$core$IFn$_invoke$arity$1(cljs.core.deref.call(null,ed)));if(or__6808__auto__)
+{return or__6808__auto__;
 } else
 {return lt.objs.editor.selection_QMARK_.call(null,ed);
 }
@@ -84,7 +84,7 @@ lt.objs.command.command.call(null,new cljs.core.PersistentArrayMap(null, 3, [new
 return lt.object.raise.call(null,e__$1,new cljs.core.Keyword(null,"eval.custom","eval.custom",3328560245),__GT_ann_form,new cljs.core.PersistentArrayMap(null, 2, [new cljs.core.Keyword(null,"result-type","result-type",4725630556),new cljs.core.Keyword(null,"replace","replace",2108401190),new cljs.core.Keyword(null,"verbatim","verbatim",3307884968),true], null));
 }
 })], null));
-lt.plugins.typedclojure.ns_checker = "(if-let [res (seq (:delayed-errors (clojure.core.typed/check-ns-info)))] (with-out-str (clojure.pprint/write res)) \"Everything is properly annotated.\")";
+lt.plugins.typedclojure.ns_checker = "(let [_ (require 'clojure.core.typed) check-ns-info (find-var 'clojure.core.typed/check-ns-info) _ (assert check-ns-info \"clojure.core.typed/check ns-info not found\") {:keys [delayed-errors]} (check-ns-info)] (if (seq delayed-errors) (for [^Exception e delayed-errors] (let [{:keys [env] :as data} (ex-data e)] (list (first (clojure.string/split (.getMessage e) #\"\nHint\")) \"\n\" (if (contains? data :form) (str (:form data)) 0) \"\n\" (str \"in: \" (:source env)) \"  \" (str \"{line: \" (:line env)) \" \" (str \"ch: \" (:column env) \"}\") \"\n\" (str \"namespace: \" (-> env :ns :name str)) \"\n\n\"))) \"No type errors found.\"))";
 lt.objs.command.command.call(null,new cljs.core.PersistentArrayMap(null, 3, [new cljs.core.Keyword(null,"command","command",1964298941),new cljs.core.Keyword(null,"typedclojure.check.ns","typedclojure.check.ns",2147291153),new cljs.core.Keyword(null,"desc","desc",1016984067),"Typed Clojure: check namespace",new cljs.core.Keyword(null,"exec","exec",1017031683),(function (){return lt.object.raise.call(null,lt.objs.editor.pool.last_active.call(null),new cljs.core.Keyword(null,"eval.custom","eval.custom",3328560245),lt.plugins.typedclojure.ns_checker,new cljs.core.PersistentArrayMap(null, 2, [new cljs.core.Keyword(null,"result-type","result-type",4725630556),new cljs.core.Keyword(null,"inline","inline",4124874251),new cljs.core.Keyword(null,"verbatim","verbatim",3307884968),true], null));
 })], null));
 lt.plugins.typedclojure.check_form = (function check_form(s){return [cljs.core.str("(if-let [res (clojure.core.typed/cf "),cljs.core.str(s),cljs.core.str(")] (with-out-str (clojure.pprint/write res)))")].join('');

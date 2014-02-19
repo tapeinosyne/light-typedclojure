@@ -169,7 +169,7 @@
 ;;;       doesn't handle newlines in the stringified function.
 
 (def ns-checker
-  "(if-let [res (seq (:delayed-errors (clojure.core.typed/check-ns-info)))] (with-out-str (clojure.pprint/write res)) \"Everything is properly annotated.\")")
+  "(let [_ (require 'clojure.core.typed) check-ns-info (find-var 'clojure.core.typed/check-ns-info) _ (assert check-ns-info \"clojure.core.typed/check ns-info not found\") {:keys [delayed-errors]} (check-ns-info)] (if (seq delayed-errors) (for [^Exception e delayed-errors] (let [{:keys [env] :as data} (ex-data e)] (list (first (clojure.string/split (.getMessage e) #\"\nHint\")) \"\n\" (if (contains? data :form) (str (:form data)) 0) \"\n\" (str \"in: \" (:source env)) \"  \" (str \"{line: \" (:line env)) \" \" (str \"ch: \" (:column env) \"}\") \"\n\" (str \"namespace: \" (-> env :ns :name str)) \"\n\n\"))) \"No type errors found.\"))")
 
 (cmd/command {:command :typedclojure.check.ns
               :desc "Typed Clojure: check namespace"
