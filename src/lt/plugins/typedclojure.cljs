@@ -181,7 +181,7 @@
 
 (defn check-form [s]
   (str
-    "(if-let [res (clojure.core.typed/cf " s ")] (with-out-str (clojure.pprint/write res)))"))
+    "(if-let [res (seq (:delayed-errors (clojure.core.typed/check-form-info '" s ")))] (for [^Exception e res] (let [{:keys [env] :as data} (ex-data e)] (list (first (clojure.string/split (.getMessage e) #\"\nHint\")) \"\n\" (str \"{line: \" (:line env)) \" \" (str \"ch: \" (:column env) \"}\") \"\n\" (if (contains? data :form) (str (:form data)) 0) \"\n\" (str \"in: \" (:source env)) \"\n\" (str \"namespace: \" (-> env :ns :name str)) \"\n\n\"))) (with-out-str (clojure.pprint/write (clojure.core.typed/cf " s "))))"))
 
 (cmd/command {:command :typedclojure.check.form
               :desc "Typed Clojure: check var or form"
