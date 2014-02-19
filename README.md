@@ -39,5 +39,5 @@ To bind keys to any of these functions, add the following commands to your user.
 ```
 
 ## Prerelease caveats
-Error messages are currently displayed awkwardly, particularly for namespace checks.  
+Error messages are currently displayed in a rather awkward fashion, particularly for var/form checks.  
 The annotation formatters do not reposition your cursor properly; for the form annotator, you are required to be *within* a form rather than at its boundaries.
