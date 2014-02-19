@@ -5,12 +5,14 @@ Typed Clojure plugin for Light Table
 Currently in α; see [below](#prerelease-caveats) for existing issues.
 
 ## Installation
-For testing purposes, either
-- clone the current repository in your Light Table plugin folder, or
-- clone the current repository and eval src/lt/plugins/typedclojure.cljs
+Typed Clojure is available in the plugin manager.
+
+Alternatively, you can manually clone this repository and either:
+- place it within Light Table's plugin folder, or
+- simply eval the contents of Typed_Clojure/src/lt/plugins/typedclojure.cljs, for testing purposes.
 
 ### Dependencies
-Light Table 0.6.4  
+Light Table 0.6.4
 Paredit 0.0.4
 
 Your project should include `[org.clojure/core.typed "0.2.30"]` or above.
@@ -18,16 +20,16 @@ Your project should include `[org.clojure/core.typed "0.2.30"]` or above.
 ## Usage
 The following commands are currently available:
 
-`Typed Clojure: check namespace`  
+`Typed Clojure: check namespace`
 to typecheck the namespace defined in your current file (as saved on disk).
 
-`Typed Clojure: check var or form`  
+`Typed Clojure: check var or form`
 to check the variable or form under the cursor, or in the selection.
 
-`Typed Clojure: annotate var`  
+`Typed Clojure: annotate var`
 to annotate a var with a type.
 
-`Typed Clojure: annotate form`  
+`Typed Clojure: annotate form`
 to annotate a form with a type.
 
 To bind keys to any of these functions, add the following commands to your user.keymap
