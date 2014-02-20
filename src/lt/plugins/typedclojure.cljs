@@ -186,8 +186,9 @@
 
 ;;;; checking commands ;;;;
 
-;;; NOTE: ns-checker and check-form are one-line because :result-type :inline
-;;;       doesn't handle newlines in the stringified function.
+;;; TODO:
+;;;   - Find a way to access custom eval results programmatically, in order to
+;;;     parse and better display them.
 
 (def ns-checker "
   (let [_ (require 'clojure.core.typed)
