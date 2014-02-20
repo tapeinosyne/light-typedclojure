@@ -189,8 +189,23 @@
 ;;; NOTE: ns-checker and check-form are one-line because :result-type :inline
 ;;;       doesn't handle newlines in the stringified function.
 
-(def ns-checker
-  "(let [_ (require 'clojure.core.typed) check-ns-info (find-var 'clojure.core.typed/check-ns-info) _ (assert check-ns-info \"clojure.core.typed/check ns-info not found\") {:keys [delayed-errors]} (check-ns-info)] (if (seq delayed-errors) (for [^Exception e delayed-errors] (let [{:keys [env] :as data} (ex-data e)] (list (first (clojure.string/split (.getMessage e) #\"\nHint\")) \"\n\" (if (contains? data :form) (str (:form data)) 0) \"\n\" (str \"in: \" (:source env)) \"  \" (str \"{line: \" (:line env)) \" \" (str \"ch: \" (:column env) \"}\") \"\n\" (str \"namespace: \" (-> env :ns :name str)) \"\n\n\"))) \"No type errors found.\"))")
+(def ns-checker "
+  (let [_ (require 'clojure.core.typed)
+        check-ns-info (find-var 'clojure.core.typed/check-ns-info)
+        _ (assert check-ns-info \"clojure.core.typed/check ns-info not found\")
+        {:keys [delayed-errors]} (check-ns-info)]
+    (if (seq delayed-errors)
+      (for [^Exception e delayed-errors]
+        (let [{:keys [env] :as data} (ex-data e)]
+          (list (first (clojure.string/split (.getMessage e) #\"\nHint\")) \"\n\"
+                (if (contains? data :form)
+                  (str (:form data))
+                  0) \"\n\"
+                (str \"in: \" (:source env)) \"  \"
+                (str \"{line: \" (:line env)) \" \"
+                (str \"ch: \" (:column env) \"}\") \"\n\"
+                (str \"namespace: \" (-> env :ns :name str)) \"\n\n\")))
+       \"No type errors found.\"))")
 
 (cmd/command {:command :typedclojure.check.ns
               :desc "Typed Clojure: check namespace"
@@ -198,11 +213,21 @@
                       (object/raise (pool/last-active)
                                     :eval.custom
                                     ns-checker
-                                    {:result-type :inline :verbatim true}))})
+                                    {:result-type :inline-at-cursor :verbatim true}))})
 
 (defn check-form [s]
-  (str
-    "(if-let [res (seq (:delayed-errors (clojure.core.typed/check-form-info '" s ")))] (for [^Exception e res] (let [{:keys [env] :as data} (ex-data e)] (list (first (clojure.string/split (.getMessage e) #\"\nHint\")) \"\n\" (str \"{line: \" (:line env)) \" \" (str \"ch: \" (:column env) \"}\") \"\n\" (if (contains? data :form) (str (:form data)) 0) \"\n\" (str \"in: \" (:source env)) \"\n\" (str \"namespace: \" (-> env :ns :name str)) \"\n\n\"))) (with-out-str (clojure.pprint/write (clojure.core.typed/cf " s "))))"))
+  (str "
+   (if-let [res (seq (:delayed-errors (clojure.core.typed/check-form-info '" s ")))]
+     (for [^Exception e res]
+       (let [{:keys [env] :as data} (ex-data e)]
+         (list (first (clojure.string/split (.getMessage e) #\"\nHint\")) \"\n\"
+               (str \"{line: \" (:line env)) \" \" (str \"ch: \" (:column env) \"}\") \"\n\"
+               (if (contains? data :form)
+                 (str (:form data))
+                 0) \"\n\"
+               (str \"in: \" (:source env)) \"\n\"
+               (str \"namespace: \" (-> env :ns :name str)) \"\n\n\")))
+     (with-out-str (clojure.pprint/write (clojure.core.typed/cf " s "))))"))
 
 (cmd/command {:command :typedclojure.check.form
               :desc "Typed Clojure: check var or form"
@@ -216,6 +241,6 @@
                          (or (:boundary token)
                              (:whitespace token)) (let [[start end] (par/form-boundary e (:at token) nil)
                                                         form (ed/range e start (ed/adjust-loc end 1))]
-                                                    (raise* e (check-form form) :res :inline))
+                                                    (raise* e (check-form form) :res :inline-at-cursor))
                          (:orphan token)          (notifos/set-msg! "core.typed can only check vars or forms")
-                         :else                    (raise* e (check-form (:string token)) :res :inline))))})
+                         :else                    (raise* e (check-form (:string token)) :res :inline-at-cursor))))})
