@@ -113,11 +113,8 @@
        (let [s '" var "
              ^clojure.lang.Var v (when (symbol? s) (resolve s))]
          (cond
-          ; if unresolved just insert whatever is given
           (not (var? v))
           (when (symbol? s) (str s))
-          ; fully qualify all vars outside current namespace
-          ; also add :no-check prefix
           (not= *ns* (.ns v))
           (str \"^:no-check \"
                (symbol (str (ns-name (.ns v)))
@@ -220,7 +217,7 @@
                             token (if (ed/selection? e)
                                     (ed/selection e)
                                     (:string (ed/->token e c)))]
-                        (object/raise (pool/last-active)
+                        (object/raise e
                                       :eval.custom
                                       (check-form token)
                                       {:result-type :inline :verbatim true})))})
