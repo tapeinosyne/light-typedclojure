@@ -13,7 +13,8 @@ Alternatively, you can manually clone this repository and either:
 
 ### Dependencies
 Light Table 0.6.4  
-Paredit 0.0.4
+Clojure plugin 0.0.8  
+Paredit plugin 0.0.4  
 
 Your project should include `[org.clojure/core.typed "0.2.30"]` or above.
 
@@ -41,6 +42,13 @@ To bind keys to any of these functions, add any of the following commands to you
 ```
 
 ## Prerelease caveats
-Typecheck messages are currently displayed in a rather awkward fashion, particularly for var/form checks. While this is partly attributable to the lack of a pre-existing eval-and-return method à la CIDER, there exists a Light Table bug in the inline display of results containing newlines that causes the widget to be moved within the editor (or even outside the editor, causing an error). See [LightTable/LightTable#1298](https://github.com/LightTable/LightTable/issues/1298) for details.
+Typecheck messages are currently displayed in a rather awkward fashion, particularly for var/form checks, which appear several lines below the relevant form. This will be fixed when the new [:inline-at-cursor](https://github.com/LightTable/Clojure/commit/26dca158e1ed67f2df66d5d98fa6244f24ebf134) result mode  lands in the official Clojure plugin. 
 
-The annotation commands do not reposition your cursor properly (again, a eval-and-return method would be welcome); they may also behave goofily or fail if the cursor is at a form boundary or in whitespace.
+The annotation commands do not reposition your cursor properly (here, an eval-and-return method à la CIDER would be welcome); they may also behave goofily or fail if the cursor is at a form boundary or in whitespace.
+
+#### Workarounds
+If you are feeling git-happy, you can fix the display issues by pulling a few changes manually.
+- Update your Clojure plugin to the latest master.
+- Update your light-typedclojure plugin by pulling branch `inline-at-cursor`.
+
+
