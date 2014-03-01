@@ -12,14 +12,17 @@
 ;;;; cursor manipulation addenda ;;;;
 
 ;;; To meet the requirements of our factoring functions, we supplement
-;;; LT and LT-Paredit functionality with a new command that behaves roughly
-;;; as Emacs' beginning-of-defun.
+;;; LT and LT-Paredit with a new command that behaves roughly as
+;;; Emacs' beginning-of-defun. This will be removed when functionally
+;;; equivalent patches land in the main releases.
 
 (defn adjust-line [loc dir]
   (when loc
     (update-in loc [:line] + dir)))
 
 (defn seek-top [ed loc]
+  ;; Relies on canonical indentation; top-level forms starting at a
+  ;; non-zero column will go undetected.
   (loop [loc loc]
    (let [pars (re-pattern "\\(|\\{|\\[")
          cur (second (par/scan {:ed ed
@@ -53,7 +56,7 @@
 
 (cmd/command {:command :typedclojure.pseudoparedit.top
               :desc "Typed Clojure: move cursor to top level"
-              :hidden true ;; remove this to make the command visible in the command bar
+              :hidden true
               :exec (fn [type]
                       (when-let [ed (pool/last-active)]
                         (when (or (not (::orig-pos @ed))
