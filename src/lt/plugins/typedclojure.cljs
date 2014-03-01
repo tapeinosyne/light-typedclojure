@@ -4,7 +4,8 @@
             [lt.objs.editor.pool :as pool]
             [lt.objs.editor :as ed]
             [lt.objs.notifos :as notifos]
-            [lt.plugins.paredit :as par])
+            [lt.plugins.paredit :as par]
+            [clojure.string :as string])
   (:require-macros [lt.macros :refer [behavior]]))
 
 
@@ -50,37 +51,6 @@
                     :to dest}))
       orig)))
 
-(defn token!? [coll]
-  ;; TODO: refactor and handle more cases. (Also, seek redemption.)
-  (let [e (pool/last-active)
-        s (:string coll)
-        opening? (partial re-seq #"\(|\[|\{")
-        closing? (partial re-seq #"\)|\]|\}")
-        blank?   (partial re-seq #"\s")
-        ->bound (fn [n] (ed/adjust-loc (ed/->cursor e) n))]
-    (cond
-     (closing? s) (do
-                    (ed/move-cursor e (->bound -1))
-                    false)
-     (= "" s)     (let [b (ed/->token e (->bound 1))]
-                    (if (opening? (:string b))
-                      (ed/move-cursor e (->bound 1))
-                      false))
-     (blank? s)   false
-     (opening? s) (do
-                    (ed/move-cursor e (->bound 1))
-                    false)
-     :else coll)))
-
-(defn form? [e loc]
-  ;; TODO: handle case where loc is out of form by one column
-  (let [[start end] (par/form-boundary e loc nil)]
-  (if (or (not= [nil nil] (par/form-boundary e loc nil))
-          (not= [nil nil] (par/form-boundary e (ed/adjust-loc loc -1) nil))
-          (not= [nil nil] (par/form-boundary e (ed/adjust-loc loc 1) nil)))
-    true
-    false)))
-
 (cmd/command {:command :typedclojure.pseudoparedit.top
               :desc "Typed Clojure: move cursor to top level"
               :hidden true ;; remove this to make the command visible in the command bar
@@ -92,6 +62,32 @@
                         (-> (par/ed->info ed)
                             (move-top :left)
                             (par/batched-edits))))})
+
+
+;;; token and form detection
+
+(defn ->token* [e loc]
+  (let [opening? #(or (= "(" %) (= "[" %) (= "{" %))
+        closing? #(or (= ")" %) (= "]" %) (= "}" %))
+        token-str (fn [pos] (:string (ed/->token e pos)))
+        ->bound   (fn [n] (ed/adjust-loc loc n))
+        s         (token-str loc)]
+    (cond
+     (closing? s) {:at (->bound -1) :boundary true}
+     (opening? s) {:at (->bound 1) :boundary true}
+     ;;(= " " s)    {:at loc :whitespace true}
+     (empty? s)   (let [tkn (token-str (->bound 1))]
+                    (cond
+                     (string/blank? tkn) {:at loc :whitespace true}
+                     (opening? tkn)      {:at (->bound 1) :boundary true}
+                     :else               {:at loc :string tkn}))
+     :else        {:at loc :string s})))
+
+(defn token-bounds* [e loc]
+  (let [token (ed/->token e loc)
+        ln (:line loc)]
+    [{:line ln :ch (:start token)}
+     {:line ln :ch (:end token)}]))
 
 
 ;;;; clj functions for eval ;;;;
