@@ -103,89 +103,82 @@
   (str typed-alias " " (pr-str f)))
 
 (defn qualified<- [var]
-  ;; Identical to typed-clojure-mode
-  ;; FIXME: return something useful when failing
   (str "
        (let [s '" var "
              ^clojure.lang.Var v (when (symbol? s) (resolve s))]
          (cond
-          (not (var? v))
-          (when (symbol? s) (str s))
-          (not= *ns* (.ns v))
-          (str \"^:no-check \"
-               (symbol (str (ns-name (.ns v)))
-                       (str (.sym v))))
-          :else
-          (str (name (symbol s)))))"))
+          (not (var? v))      (when (symbol? s) (str s))
+          (not= *ns* (.ns v)) (str \"^:no-check \"
+                                   (symbol (str (ns-name (.ns v)))
+                                           (str (.sym v))))
+          :else               (str (name (symbol s)))))"))
 
 
 ;;;; annotation commands ;;;;
 
-;;; TODO:
-;;;   - Improve form/var selection.
-;;;   - Find a way to access custom eval results programmatically,
-;;;     so that we can move cursor to |Any.
-;;;   - Handle errors.
+(defn raise* [e s]
+  (object/raise e
+                :eval.custom
+                s
+                {:result-type :replace :verbatim true}))
+
+(defn ->ann-var [token]
+  (str  "(str \"(\""
+        (aliased<- "ann")
+        "\" \""
+        (if token
+          (qualified<- token)
+          " ")
+        "\" Any)\""
+        ")"))
 
 (cmd/command {:command :typedclojure.ann.var
               :desc "Typed Clojure: annotate var"
               :exec (fn []
                       (let [e (pool/last-active)
-                            c (ed/->cursor e)]
-                        (let [token (if (ed/selection? e)
-                                      (ed/selection e)
-                                      (:string (ed/->token e c)))
-                              ->ann-var (str  "(str \"(\""
-                                              (aliased<- "ann")
-                                              "\" \""
-                                              (qualified<- token)
-                                              "\" Any)\""
-                                              ")")]
-                          (do
-                            (cmd/exec! :typedclojure.pseudoparedit.top)
-                            (ed/insert-at-cursor e "\n")
-                            (ed/move-cursor e
-                                            (adjust-line (ed/->cursor e) -1))
-                            (object/raise e
-                                          :eval.custom
-                                          ->ann-var
-                                          {:result-type :replace :verbatim true})))))})
+                            c (ed/->cursor e)
+                            token (if (ed/selection? e)
+                                    {:string (ed/selection e)}
+                                    (->token* e c))]
+                        (cond
+                         (:boundary token)   (notifos/set-msg! "core.typed/ann can only annotate vars")
+                         (:whitespace token) (raise* e (->ann-var nil))
+                         :else               (do
+                                               (cmd/exec! :typedclojure.pseudoparedit.top)
+                                               (ed/insert-at-cursor e "\n")
+                                               (ed/move-cursor e (adjust-line (ed/->cursor e) -1))
+                                               (raise* e (->ann-var (:string token)))))))})
 
+(defn ->ann-form [s]
+  (str  "(str \"(\""
+        (aliased<- "ann-form")
+        "\" \""
+        (or (pr-str s) " ")
+        "\" Any)\""
+        ")"))
 
 (cmd/command {:command :typedclojure.ann.form
               :desc "Typed Clojure: annotate form"
               :exec (fn []
                       (let [e (pool/last-active)
                             c (ed/->cursor e)
-                            token (ed/->token e c)
-                            sym (cond
-                                   (ed/selection? e) false
-                                   (token!? token) (update-in (conj token {:line (:line c)})
-                                                              [:string]
-                                                              pr-str)
-                                   :else false)
-                            ->ann-form (str  "(str \"(\""
-                                             (aliased<- "ann-form")
-                                             "\" \""
-                                             (or (:string sym) "__SELECTION*__")
-                                             "\" Any)\""
-                                             ")")]
-                        (do
-                          (if sym
-                            (ed/set-selection e {:line (:line sym) :ch (:start sym)}
-                                                {:line (:line sym) :ch (:end sym)})
-                            (cmd/exec! :paredit.select.parent))
-                          (object/raise e
-                                        :eval.custom
-                                        ->ann-form
-                                        {:result-type :replace :verbatim true}))))})
+                            token (if (ed/selection? e)
+                                    {:string (ed/selection e) :selection true}
+                                    (->token* e c))
+                            bounds ()]
+                        (cond
+                         (:boundary token)   (do
+                                               (ed/move-cursor e (:at token))
+                                               (cmd/exec! :paredit.select.parent)
+                                               (raise* e (->ann-form (ed/selection e))))
+                         (:whitespace token) (raise* e (->ann-form nil))
+                         (:selection token)  (raise* e (->ann-form (:string token)))
+                         :else               (let [[start end] (token-bounds* e (:at token))]
+                                               (ed/set-selection e start end)
+                                               (raise* e (->ann-form (:string token)))))))})
 
 
 ;;;; checking commands ;;;;
-
-;;; TODO:
-;;;   - Find a way to access custom eval results programmatically, in order to
-;;;     parse and better display them.
 
 ;;; NOTE: ns-checker and check-form are one-line because :result-type :inline
 ;;;       doesn't handle newlines in the stringified function.
