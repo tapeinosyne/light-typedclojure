@@ -42,11 +42,11 @@ To bind keys to any of these functions, add any of the following commands to you
 ```
 
 ## Prerelease caveats
-Typecheck messages are currently displayed in a rather awkward fashion, particularly for var/form checks, which appear several lines below the relevant form. This will be fixed when the new [:inline-at-cursor](https://github.com/LightTable/Clojure/commit/26dca158e1ed67f2df66d5d98fa6244f24ebf134) result mode lands in the official Clojure plugin. 
+Typecheck messages are currently displayed in a rather awkward fashion, particularly for var/form checks, the results of which appear several lines below the relevant form. This will be fixed when the new [:inline-at-cursor](https://github.com/LightTable/Clojure/commit/26dca158e1ed67f2df66d5d98fa6244f24ebf134) result mode lands in the official Clojure plugin. 
 
-The annotation commands may behave goofily or fail if the cursor is at a form boundary or in whitespace. They also do not reposition your cursor properly; this will be easier to fix if/when [LightTable/Clojure#11](https://github.com/LightTable/Clojure/pull/11) is merged.
+The annotation commands do not reposition your cursor properly. This will be easier to fix if/when [LightTable/Clojure#11](https://github.com/LightTable/Clojure/pull/11) is merged.
 
 #### Workarounds
 If you are feeling git-happy, you can fix the display issues by pulling a few changes manually.
 - Update your Clojure plugin to the latest master.
-- Update your light-typedclojure plugin by pulling branch `inline-at-cursor`.
+- Update your Typed Clojure plugin by pulling branch `inline-at-cursor`.
