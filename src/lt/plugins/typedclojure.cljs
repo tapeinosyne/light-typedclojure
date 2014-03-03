@@ -119,11 +119,11 @@
 
 ;;;; annotation commands ;;;;
 
-(defn raise* [e s]
+(defn raise* [e s & {:keys [res] :or {res :replace}}]
   (object/raise e
                 :eval.custom
                 s
-                {:result-type :replace :verbatim true}))
+                {:result-type res :verbatim true}))
 
 (defn ->ann-var [token]
   (str  "(str \"(\""
