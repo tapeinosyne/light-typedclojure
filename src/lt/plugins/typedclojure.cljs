@@ -210,9 +210,12 @@
                       (let [e (pool/last-active)
                             c (ed/->cursor e)
                             token (if (ed/selection? e)
-                                    (ed/selection e)
-                                    (:string (ed/->token e c)))]
-                        (object/raise e
-                                      :eval.custom
-                                      (check-form token)
-                                      {:result-type :inline :verbatim true})))})
+                                    {:string (ed/selection e) :selection true}
+                                    (->token* e c))]
+                        (cond
+                         (or (:boundary token)
+                             (:whitespace token)) (let [[start end] (par/form-boundary e (:at token) nil)
+                                                        form (ed/range e start (ed/adjust-loc end 1))]
+                                                    (raise* e (check-form form) :res :inline))
+                         (:orphan token)          (notifos/set-msg! "core.typed can only check vars or forms")
+                         :else                    (raise* e (check-form (:string token)) :res :inline))))})
