@@ -78,10 +78,10 @@
     (cond
      (closing? s) {:at (->bound -1) :boundary true}
      (opening? s) {:at (->bound 1) :boundary true}
-     ;;(= " " s)    {:at loc :whitespace true}
+     (= " " s)    {:at loc :whitespace true}
      (empty? s)   (let [tkn (token-str (->bound 1))]
                     (cond
-                     (string/blank? tkn) {:at loc :whitespace true}
+                     (string/blank? tkn) {:at loc :orphan true}
                      (opening? tkn)      {:at (->bound 1) :boundary true}
                      :else               {:at loc :string tkn}))
      :else        {:at loc :string s})))
@@ -144,13 +144,14 @@
                                     {:string (ed/selection e)}
                                     (->token* e c))]
                         (cond
-                         (:boundary token)   (notifos/set-msg! "core.typed/ann can only annotate vars")
-                         (:whitespace token) (raise* e (->ann-var nil))
-                         :else               (do
-                                               (cmd/exec! :typedclojure.pseudoparedit.top)
-                                               (ed/insert-at-cursor e "\n")
-                                               (ed/move-cursor e (adjust-line (ed/->cursor e) -1))
-                                               (raise* e (->ann-var (:string token)))))))})
+                         (or (:boundary token)
+                             (:whitespace token)) (notifos/set-msg! "core.typed/ann can only annotate vars")
+                         (:orphan token)          (raise* e (->ann-var nil))
+                         :else                    (do
+                                                    (cmd/exec! :typedclojure.pseudoparedit.top)
+                                                    (ed/insert-at-cursor e "\n")
+                                                    (ed/move-cursor e (adjust-line (ed/->cursor e) -1))
+                                                    (raise* e (->ann-var (:string token)))))))})
 
 (defn ->ann-form [s]
   (str  "(str \"(\""
@@ -167,14 +168,16 @@
                             c (ed/->cursor e)
                             token (if (ed/selection? e)
                                     {:string (ed/selection e) :selection true}
-                                    (->token* e c))
-                            bounds ()]
+                                    (->token* e c))]
                         (cond
                          (:boundary token)   (do
                                                (ed/move-cursor e (:at token))
                                                (cmd/exec! :paredit.select.parent)
                                                (raise* e (->ann-form (ed/selection e))))
-                         (:whitespace token) (raise* e (->ann-form nil))
+                         (:whitespace token) (do
+                                               (cmd/exec! :paredit.select.parent)
+                                               (raise* e (->ann-form (ed/selection e))))
+                         (:orphan token)     (raise* e (->ann-form nil))
                          (:selection token)  (raise* e (->ann-form (:string token)))
                          :else               (let [[start end] (token-bounds* e (:at token))]
                                                (ed/set-selection e start end)
