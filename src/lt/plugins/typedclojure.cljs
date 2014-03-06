@@ -183,6 +183,36 @@
                                                (ed/set-selection e start end)
                                                (raise* e (->ann-form (:string token)))))))})
 
+(defn ->pred [& [s]]
+  (str "(str \"((\""
+        (aliased<- "pred")
+        "\" \""
+        (pr-str "Any")
+        "\") \""
+        (if s (pr-str s))
+        "\")\""
+        ")"))
+
+(cmd/command {:command :typedclojure.pred
+              :desc "Typed Clojure: add type predicate"
+              :exec (fn []
+                      (let [e (pool/last-active)
+                            c (ed/->cursor e)
+                            token (if (ed/selection? e)
+                                    {:string (ed/selection e) :selection true}
+                                    (->token* e c))]
+                        (cond
+                         (or (:boundary token)
+                             (:whitespace token)) (do
+                                                    (ed/move-cursor e (:at token))
+                                                    (cmd/exec! :paredit.select.parent)
+                                                    (raise* e (->pred (ed/selection e))))
+                         (:orphan token)          (raise* e (->pred))
+                         (:selection token)      (raise* e (->pred (:string token)))
+                         :else                   (let [[start end] (token-bounds* e (:at token))]
+                                                   (ed/set-selection e start end)
+                                                   (raise* e (->pred (:string token)))))))})
+
 
 ;;;; checking commands ;;;;
 
