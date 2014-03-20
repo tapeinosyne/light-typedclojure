@@ -220,23 +220,23 @@
 ;;;   - Find a way to access custom eval results programmatically, in order to
 ;;;     parse and better display them.
 
-(def ns-checker "
-  (let [_ (require 'clojure.core.typed)
+(def ns-checker
+  (str '(let [t (require 'clojure.core.typed)
         check-ns-info (find-var 'clojure.core.typed/check-ns-info)
-        _ (assert check-ns-info \"clojure.core.typed/check ns-info not found\")
+        t (assert check-ns-info "clojure.core.typed/check-ns-info not found")
         {:keys [delayed-errors]} (check-ns-info)]
     (if (seq delayed-errors)
       (for [^Exception e delayed-errors]
         (let [{:keys [env] :as data} (ex-data e)]
-          (list (first (clojure.string/split (.getMessage e) #\"\nHint\")) \"\n\"
+          (list (first (clojure.string/split (.getMessage e) #"\nHint")) "\n"
                 (if (contains? data :form)
                   (str (:form data))
-                  0) \"\n\"
-                (str \"in: \" (:source env)) \"  \"
-                (str \"{line: \" (:line env)) \" \"
-                (str \"ch: \" (:column env) \"}\") \"\n\"
-                (str \"namespace: \" (-> env :ns :name str)) \"\n\n\")))
-       \"No type errors found.\"))")
+                  0) "\n"
+                (str "in: " (:source env)) "  "
+                (str "{line: " (:line env)) " "
+                (str "ch: " (:column env) "}") "\n"
+                (str "namespace: " (-> env :ns :name str)) "\n\n")))
+       "No type errors found."))))
 
 (cmd/command {:command :typedclojure.check.ns
               :desc "Typed Clojure: check namespace"
