@@ -8,7 +8,7 @@ Typed Clojure is available in the plugin manager.
 Alternatively, you can manually clone this repository into your plugin folder.
 
 ### Dependencies
-Light Table 0.6.4+
+Light Table 0.6.4+  
 Clojure plugin 0.0.10+  
 Paredit plugin 0.0.4+
 
