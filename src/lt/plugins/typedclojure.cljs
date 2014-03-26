@@ -5,7 +5,8 @@
             [lt.objs.editor :as ed]
             [lt.objs.notifos :as notifos]
             [lt.plugins.paredit :as par]
-            [clojure.string :as string])
+            [clojure.string :as string]
+            [cljs.reader :as reader])
   (:require-macros [lt.macros :refer [behavior]]))
 
 
@@ -119,11 +120,41 @@
 
 ;;;; annotation commands ;;;;
 
+;;; raise wrappers
+
 (defn raise* [e s & {:keys [res] :or {res :replace}}]
   (object/raise e
                 :eval.custom
                 s
                 {:result-type res :verbatim true}))
+
+(defn raise-ann [e s & [opts]]
+  (object/raise e
+                :eval.custom
+                s
+                (merge {:result-type :return
+                        :handler e
+                        :trigger ::annotate!}
+                       opts)))
+
+;;; return handling
+
+(defn post-ann [e {:keys [offset] :as meta*}]
+  (let [cursor (ed/->cursor e)]
+    (if offset
+      (move-cursor-relative e
+                            cursor
+                            offset)
+      (ed/set-selection e
+                        (ed/adjust-loc cursor -1)
+                        (ed/adjust-loc cursor -4)))))
+
+(behavior ::annotate!
+          :triggers #{::annotate!}
+          :reaction (fn [this {:keys [result meta]}]
+                      (let [returned (reader/read-string result)]
+                        (ed/replace-selection this returned)
+                        (post-ann this meta))))
 
 (defn ->ann-var [token]
   (str  "(str \"(\""
@@ -219,7 +250,7 @@
 ;;; TODO:
 ;;;   - Find a way to access custom eval results programmatically, in order to
 ;;;     parse and better display them.
-
+s
 (def ns-checker
   (str '(let [t (require 'clojure.core.typed)
         check-ns-info (find-var 'clojure.core.typed/check-ns-info)
