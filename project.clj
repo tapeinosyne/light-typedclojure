@@ -1,2 +1,2 @@
-(defproject light-typedclojure "0.0.4"
-  :dependencies [[org.clojure/clojure "1.5.1"]])
+(defproject light-typedclojure "0.0.5"
+  :dependencies [[org.clojure/clojure "1.6.0"]])
