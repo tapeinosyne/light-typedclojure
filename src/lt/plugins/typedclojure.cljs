@@ -12,6 +12,13 @@
 
 ;;;; cursor manipulation addenda ;;;;
 
+(defn move-cursor-relative
+  "Given an editor, a cursor, and a location offset {:line n :ch m}, move
+   the cursor to a new location."
+  [e cursor {:keys [line ch] :or [line 0 ch 0] :as offset}]
+  (let [new-pos (merge-with + cursor offset)]
+    (ed/move-cursor e new-pos)))
+
 ;;; To meet the requirements of our factoring functions, we supplement
 ;;; LT and LT-Paredit with a new command that behaves roughly as
 ;;; Emacs' beginning-of-defun. This will be removed when functionally
@@ -94,7 +101,7 @@
      {:line ln :ch (:end token)}]))
 
 
-;;;; clj functions for eval ;;;;
+;;;; aliasing and qualification ;;;;
 
 (def typed-alias "
   (if-let [[a typedns] (first (filter #(= (find-ns 'clojure.core.typed)
@@ -156,6 +163,13 @@
                         (ed/replace-selection this returned)
                         (post-ann this meta))))
 
+;;; core.typed/ann annotator
+
+(defn ->newline-above! [e c]
+  (cmd/exec! :typedclojure.pseudoparedit.top)
+  (ed/insert-at-cursor e "\n")
+  (ed/move-cursor e c))
+
 (defn ->ann-var [token]
   (str  "(str \"(\""
         (aliased<- "ann")
@@ -177,12 +191,14 @@
                         (cond
                          (or (:boundary token)
                              (:whitespace token)) (notifos/set-msg! "core.typed/ann can only annotate vars")
-                         (:orphan token)          (raise* e (->ann-var nil))
+                         (:orphan token)          (raise-ann e
+                                                             (->ann-var nil)
+                                                             {:offset {:ch -5}})
                          :else                    (do
-                                                    (cmd/exec! :typedclojure.pseudoparedit.top)
-                                                    (ed/insert-at-cursor e "\n")
-                                                    (ed/move-cursor e (adjust-line (ed/->cursor e) -1))
-                                                    (raise* e (->ann-var (:string token)))))))})
+                                                    (->newline-above! e c)
+                                                    (raise-ann e (->ann-var (:string token)))))))})
+
+;;; core.typed/ann-form annotator
 
 (defn ->ann-form [s]
   (str  "(str \"(\""
@@ -204,15 +220,19 @@
                          (:boundary token)   (do
                                                (ed/move-cursor e (:at token))
                                                (cmd/exec! :paredit.select.parent)
-                                               (raise* e (->ann-form (ed/selection e))))
+                                               (raise-ann e (->ann-form (ed/selection e))))
                          (:whitespace token) (do
                                                (cmd/exec! :paredit.select.parent)
-                                               (raise* e (->ann-form (ed/selection e))))
-                         (:orphan token)     (raise* e (->ann-form nil))
-                         (:selection token)  (raise* e (->ann-form (:string token)))
+                                               (raise-ann e (->ann-form (ed/selection e))))
+                         (:orphan token)     (raise-ann e
+                                                        (->ann-form nil)
+                                                        {:offset {:ch -5}})
+                         (:selection token)  (raise-ann e (->ann-form (:string token)))
                          :else               (let [[start end] (token-bounds* e (:at token))]
                                                (ed/set-selection e start end)
-                                               (raise* e (->ann-form (:string token)))))))})
+                                               (raise-ann e (->ann-form (:string token)))))))})
+
+;;; core.typed/pred annotator
 
 (defn ->pred [& [s]]
   (str "(str \"((\""
@@ -239,18 +259,19 @@
                                                     (cmd/exec! :paredit.select.parent)
                                                     (raise* e (->pred (ed/selection e))))
                          (:orphan token)          (raise* e (->pred))
-                         (:selection token)      (raise* e (->pred (:string token)))
-                         :else                   (let [[start end] (token-bounds* e (:at token))]
-                                                   (ed/set-selection e start end)
-                                                   (raise* e (->pred (:string token)))))))})
-
+                         (:selection token)       (raise* e (->pred (:string token)))
+                         :else                    (let [[start end] (token-bounds* e (:at token))]
+                                                    (ed/set-selection e start end)
+                                                    (raise* e (->pred (:string token)))))))})
 
 ;;;; checking commands ;;;;
 
 ;;; TODO:
-;;;   - Find a way to access custom eval results programmatically, in order to
-;;;     parse and better display them.
-s
+;;;   - Use result-type :return to improve display of check.ns results;
+;;;     provide error navigation.
+
+;;; core.typed/check-ns-info annotator
+
 (def ns-checker
   (str '(let [t (require 'clojure.core.typed)
         check-ns-info (find-var 'clojure.core.typed/check-ns-info)
@@ -276,6 +297,8 @@ s
                                     :eval.custom
                                     ns-checker
                                     {:result-type :inline-at-cursor :verbatim true}))})
+
+;;; core.typed/check-form-info annotator
 
 (defn check-form [s]
   (str "
