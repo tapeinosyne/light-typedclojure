@@ -24,10 +24,6 @@
 ;;; Emacs' beginning-of-defun. This will be removed when functionally
 ;;; equivalent patches land in the main releases.
 
-(defn adjust-line [loc dir]
-  (when loc
-    (update-in loc [:line] + dir)))
-
 (defn seek-top [ed loc]
   ;; Relies on canonical indentation; top-level forms starting at a
   ;; non-zero column will go undetected.
