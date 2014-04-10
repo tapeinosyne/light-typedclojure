@@ -270,21 +270,22 @@
 
 (def ns-checker
   (str '(let [t (require 'clojure.core.typed)
-        check-ns-info (find-var 'clojure.core.typed/check-ns-info)
-        t (assert check-ns-info "clojure.core.typed/check-ns-info not found")
-        {:keys [delayed-errors]} (check-ns-info)]
-    (if (seq delayed-errors)
-      (for [^Exception e delayed-errors]
-        (let [{:keys [env] :as data} (ex-data e)]
-          (list (first (clojure.string/split (.getMessage e) #"\nHint")) "\n"
-                (if (contains? data :form)
-                  (str (:form data))
-                  0) "\n"
-                (str "in: " (:source env)) "  "
-                (str "{line: " (:line env)) " "
-                (str "ch: " (:column env) "}") "\n"
-                (str "namespace: " (-> env :ns :name str)) "\n\n")))
-       "No type errors found."))))
+              check-ns-info (find-var 'clojure.core.typed/check-ns-info)
+              t (assert check-ns-info "clojure.core.typed/check-ns-info not found")
+              {:keys [delayed-errors]} (check-ns-info)]
+          (if-let [res (seq delayed-errors)]
+            (do
+              (doseq [^Exception e res
+                      :let [{:keys [env] :as data} (ex-data e)]]
+                (println (str (first (clojure.string/split (.getMessage e) #"\nHint")) "\n"
+                              (if (contains? data :form)
+                                (:form data)
+                                0) "\n"
+                              "Source: " (:source env) "  "
+                              "{line: " (:line env) " "
+                              "ch: " (:column env) "}")))
+              (str "Typed Clojure: " (count res) " type errors found."))
+            "Typed Clojure: no errors found."))))
 
 (cmd/command {:command :typedclojure.check.ns
               :desc "Typed Clojure: check namespace"
@@ -292,7 +293,7 @@
                       (object/raise (pool/last-active)
                                     :eval.custom
                                     ns-checker
-                                    {:result-type :inline-at-cursor :verbatim true}))})
+                                    {:result-type :statusbar :verbatim true}))})
 
 ;;; core.typed/check-form-info annotator
 
