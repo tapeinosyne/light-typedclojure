@@ -284,7 +284,7 @@
                               "Source: " (:source env) "  "
                               "{line: " (:line env) " "
                               "ch: " (:column env) "}")))
-              (str "Typed Clojure: " (count res) " type errors found."))
+              (str "Typed Clojure: " (count res) " errors found."))
             "Typed Clojure: no errors found."))))
 
 (cmd/command {:command :typedclojure.check.ns
@@ -303,12 +303,9 @@
      (for [^Exception e res]
        (let [{:keys [env] :as data} (ex-data e)]
          (list (first (clojure.string/split (.getMessage e) #\"\nHint\")) \"\n\"
-               (str \"{line: \" (:line env)) \" \" (str \"ch: \" (:column env) \"}\") \"\n\"
                (if (contains? data :form)
                  (str (:form data))
-                 0) \"\n\"
-               (str \"in: \" (:source env)) \"\n\"
-               (str \"namespace: \" (-> env :ns :name str)) \"\n\n\")))
+                 0) \"\n\")))
      (with-out-str (clojure.pprint/write (clojure.core.typed/cf " s "))))"))
 
 (cmd/command {:command :typedclojure.check.form
