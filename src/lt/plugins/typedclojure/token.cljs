@@ -1,8 +1,7 @@
 (ns lt.plugins.typedclojure.token
   "Token and form detection addenda."
   (:require [lt.objs.editor :as ed]
-            [clojure.string :as string]
-            [lt.objs.editor.pool :as p]))
+            [clojure.string :as string]))
 
 (defn ->token [e loc]
   (let [opening? #(or (= "(" %) (= "[" %) (= "{" %))

@@ -6,12 +6,40 @@
             [lt.objs.editor :as ed]
             [lt.plugins.paredit :as par]))
 
+
+(defn post-ann-boundary [editor bound]
+  (let [loc (ed/adjust-loc (ed/->cursor editor) -1)
+        [start end] (par/form-boundary editor loc nil)]
+    (if (= :start bound)
+      start
+      end)))
+
 (defn move-relative
   "Given an editor, a cursor, and a location offset {:line n :ch m}, move
    the cursor to a new location."
   [e cursor {:keys [line ch] :or [line 0 ch 0] :as offset}]
   (let [new-pos (merge-with + cursor offset)]
     (ed/move-cursor e new-pos)))
+
+(defn select-relative*
+  "Given an editor, a location, and a vector of integers [start end], sets
+   the selection from column (location + start) to column (location + end)"
+  [e loc [start end]]
+  (ed/set-selection e
+                    (ed/adjust-loc loc start)
+                    (ed/adjust-loc loc end)))
+
+(defn select-relative [{:keys [editor sel rel] :or {sel [0 -3] rel :end}}]
+  (let [loc (post-ann-boundary editor rel)]
+    (select-relative* editor
+                      loc
+                      sel)))
+
+(defn ->newline-above! [e loc]
+  (cmd/exec! :typedclojure.pseudoparedit.top)
+  (ed/insert-at-cursor e "\n")
+  (ed/move-cursor e loc))
+
 
 ;;; To meet the requirements of our factoring functions, we supplement
 ;;; LT and LT-Paredit with a new command that behaves roughly as

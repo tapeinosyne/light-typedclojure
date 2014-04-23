@@ -1,6 +1,5 @@
 .nrepl-port
 target
 profiles.clj
-scratch.cljs
 test
 .lein-repl-history

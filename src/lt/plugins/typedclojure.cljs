@@ -13,12 +13,12 @@
 
 ;;;; aliasing and qualification ;;;;
 
-(def typed-alias "
-  (if-let [[a typedns] (first (filter #(= (find-ns 'clojure.core.typed)
+(def typed-alias
+  '(if-let [[a typedns] (first (filter #(= (find-ns 'clojure.core.typed)
                                           (val %))
                                       (ns-aliases *ns*)))]
-    (str a \"/\")
-    (str \"clojure.core.typed/\"))")
+    (str a "/")
+    (str "clojure.core.typed/")))
 
 (defn aliased<- [f]
   (str typed-alias " " (pr-str f)))
@@ -39,16 +39,16 @@
 
 ;;; raise wrappers
 
-(defn raise* [e s & {:keys [res] :or {res :replace}}]
+(defn raise* [e fun-string & {:keys [res] :or {res :replace}}]
   (object/raise e
                 :eval.custom
-                s
+                fun-string
                 {:result-type res :verbatim true}))
 
-(defn raise-ann [e s & [opts]]
+(defn raise-ann [e fun-string & [opts]]
   (object/raise e
                 :eval.custom
-                s
+                fun-string
                 (merge {:result-type :return
                         :handler e
                         :trigger ::annotate!}
@@ -56,30 +56,14 @@
 
 ;;; return handling
 
-(defn post-ann [e {:keys [offset] :as meta*}]
-  (let [cursor (ed/->cursor e)]
-    (if offset
-      (cursor/move-relative e
-                            cursor
-                            offset)
-      (ed/set-selection e
-                        (ed/adjust-loc cursor -1)
-                        (ed/adjust-loc cursor -4)))))
-
 (behavior ::annotate!
           :triggers #{::annotate!}
           :reaction (fn [this {:keys [result meta]}]
                       (let [returned (reader/read-string result)]
                         (ed/replace-selection this returned)
-                        (post-ann this meta))))
-
+                        (cursor/select-relative (merge meta {:editor this})))))
 
 ;;; core.typed/ann annotator
-
-(defn ->newline-above! [e c]
-  (cmd/exec! :typedclojure.pseudoparedit.top)
-  (ed/insert-at-cursor e "\n")
-  (ed/move-cursor e c))
 
 (defn ->ann-var [token]
   (str "(str \"(\""
@@ -104,9 +88,9 @@
                              (:whitespace token)) (notifos/set-msg! "core.typed/ann can only annotate vars")
                          (:orphan token)          (raise-ann e
                                                              (->ann-var nil)
-                                                             {:offset {:ch -5}})
+                                                             {:sel [-4 -4]})
                          :else                    (do
-                                                    (->newline-above! e c)
+                                                    (cursor/->newline-above! e c)
                                                     (raise-ann e (->ann-var (:string token)))))))})
 
 ;;; core.typed/ann-form annotator
@@ -137,7 +121,7 @@
                                                (raise-ann e (->ann-form (ed/selection e))))
                          (:orphan token)     (raise-ann e
                                                         (->ann-form nil)
-                                                        {:offset {:ch -5}})
+                                                        {:sel [-4 -4]})
                          (:selection token)  (raise-ann e (->ann-form (:string token)))
                          :else               (let [[start end] (token/bounds e (:at token))]
                                                (ed/set-selection e start end)
@@ -156,24 +140,32 @@
         ")"))
 
 (cmd/command {:command :typedclojure.pred
-              :desc "Typed Clojure: add type predicate"
+              :desc "Typed Clojure: add predicate"
               :exec (fn []
                       (let [e (pool/last-active)
                             c (ed/->cursor e)
                             token (if (ed/selection? e)
                                     {:string (ed/selection e) :selection true}
-                                    (token/->token e c))]
+                                    (token/->token e c))
+                            post-opts {:rel :start
+                                       :sel [12 9]}]
                         (cond
                          (or (:boundary token)
                              (:whitespace token)) (do
                                                     (ed/move-cursor e (:at token))
                                                     (cmd/exec! :paredit.select.parent)
-                                                    (raise* e (->pred (ed/selection e))))
-                         (:orphan token)          (raise* e (->pred))
-                         (:selection token)       (raise* e (->pred (:string token)))
+                                                    (raise-ann e
+                                                               (->pred (ed/selection e))
+                                                               post-opts))
+                         (:orphan token)          (raise-ann e (->pred) post-opts)
+                         (:selection token)       (raise-ann e
+                                                             (->pred (:string token))
+                                                             post-opts)
                          :else                    (let [[start end] (token/bounds e (:at token))]
                                                     (ed/set-selection e start end)
-                                                    (raise* e (->pred (:string token)))))))})
+                                                    (raise-ann e
+                                                               (->pred (:string token))
+                                                               post-opts)))))})
 
 ;;;; checking commands ;;;;
 
@@ -204,10 +196,7 @@
 (cmd/command {:command :typedclojure.check.ns
               :desc "Typed Clojure: check namespace"
               :exec (fn []
-                      (object/raise (pool/last-active)
-                                    :eval.custom
-                                    ns-checker
-                                    {:result-type :statusbar :verbatim true}))})
+                      (raise* (pool/last-active) ns-checker :res :statusbar))})
 
 ;;; core.typed/check-form-info
 
